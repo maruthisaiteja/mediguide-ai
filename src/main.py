@@ -32,6 +32,20 @@ import json
 from datetime import datetime
 from typing import Optional
 
+# ── Fix: Add project root to sys.path ────────────────────────────────────────
+# When running `python src/main.py`, Python adds src/ to sys.path, not the
+# project root. This line ensures `from src.agents...` imports work correctly.
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Fix Windows cmd.exe Unicode encoding (needed for emoji output)
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file BEFORE any other imports
@@ -71,6 +85,7 @@ def setup_adk():
     session_service = InMemorySessionService()
 
     # Create the ADK runner
+    # Note: google-adk 2.3.0 uses app_name + session_service parameters
     runner = Runner(
         agent=root_agent,
         app_name="mediguide_ai",
@@ -94,45 +109,67 @@ async def run_agent_query(runner, session_service, user_id: str, session_id: str
     Returns:
         The agent's response as a string.
     """
-    from google.adk.sessions import InMemorySessionService
     from google.genai.types import Content, Part
     from src.tools.security import SecurityLayer
 
-    # Apply security layer before sending to agent
-    security = SecurityLayer()
-    security_result = security.process_input(query)
+    try:
+        # Apply security layer before sending to agent
+        security = SecurityLayer()
+        security_result = security.process_input(query)
 
-    # Handle blocked content
-    if security_result["blocked"]:
-        return f"⚠️ {security_result['block_reason']}"
+        # Handle blocked content
+        if security_result["blocked"]:
+            return f"[BLOCKED] {security_result['block_reason']}"
 
-    # Inform user if PII was redacted
-    pii_notice = ""
-    if security_result["redactions_made"]:
-        pii_notice = f"\n\n*Note: For your privacy, some personal information was redacted from your message: {', '.join(security_result['redactions_made'])}*"
+        # Inform user if PII was redacted
+        pii_notice = ""
+        if security_result["redactions_made"]:
+            pii_notice = (
+                f"\n\n*Note: For your privacy, some personal information was redacted: "
+                f"{', '.join(security_result['redactions_made'])}*"
+            )
 
-    # Create the user message
-    user_message = Content(
-        role="user",
-        parts=[Part(text=security_result["safe_text"])],
-    )
+        # Create the user message content object (ADK format)
+        user_message = Content(
+            role="user",
+            parts=[Part(text=security_result["safe_text"])],
+        )
 
-    # Run the agent and collect the response
-    final_response = ""
+        # Run the agent and collect the final response
+        final_response = ""
 
-    async for event in runner.run_async(
-        user_id=user_id,
-        session_id=session_id,
-        new_message=user_message,
-    ):
-        if event.is_final_response():
-            if event.content and event.content.parts:
-                final_response = event.content.parts[0].text
+        async for event in runner.run_async(
+            user_id=user_id,
+            session_id=session_id,
+            new_message=user_message,
+        ):
+            # Capture the last final response from the agent
+            if hasattr(event, 'is_final_response') and event.is_final_response():
+                if event.content and event.content.parts:
+                    final_response = event.content.parts[0].text
+            elif hasattr(event, 'content') and event.content:
+                # Fallback: capture any text content
+                if event.content.parts and not final_response:
+                    for part in event.content.parts:
+                        if hasattr(part, 'text') and part.text:
+                            final_response = part.text
 
-    # Apply output security layer
-    security_filtered_response = security.process_output(final_response)
+        if not final_response:
+            final_response = "I'm processing your request. Please try again."
 
-    return security_filtered_response + pii_notice
+        # Apply output security layer
+        security_filtered_response = security.process_output(final_response)
+        return security_filtered_response + pii_notice
+
+    except Exception as e:
+        err_str = str(e)
+        if "RESOURCE_EXHAUSTED" in err_str or "429" in err_str:
+            return (
+                "[API Quota Limit] The free tier API quota has been reached.\n"
+                "Please wait ~1 minute and try again.\n"
+                "Details: https://ai.google.dev/gemini-api/docs/rate-limits"
+            )
+        raise
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -171,7 +208,7 @@ async def interactive_chat():
     user_id = f"user_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-    # Create session
+    # Create session (google-adk 2.3.0: session_id is optional)
     await session_service.create_session(
         app_name="mediguide_ai",
         user_id=user_id,

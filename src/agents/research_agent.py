@@ -19,7 +19,7 @@ Integration:
 Design Pattern: Sub-agent of OrchestratorAgent, invoked for information queries.
 """
 
-from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
 from google.adk.tools import FunctionTool
 
 from src.tools.medical_tools import (
@@ -125,7 +125,7 @@ def search_health_info(query: str, source_preference: str = "peer_reviewed") -> 
 # ─────────────────────────────────────────────────────────────────────────────
 # Research Agent Definition
 # ─────────────────────────────────────────────────────────────────────────────
-research_agent = Agent(
+research_agent = LlmAgent(
     name="ResearchAgent",
     model="gemini-2.0-flash",
 

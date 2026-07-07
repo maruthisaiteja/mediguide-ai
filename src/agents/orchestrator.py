@@ -15,9 +15,8 @@ Key Concepts Demonstrated:
 """
 
 import os
-from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
 from google.adk.tools import FunctionTool
-from google.adk.models.lite_llm import LiteLlm
 
 from src.agents.triage_agent import triage_agent
 from src.agents.research_agent import research_agent
@@ -93,7 +92,7 @@ def check_medications(drug_list: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 # Root Orchestrator Agent Definition
 # ─────────────────────────────────────────────────────────────────────────────
-root_agent = Agent(
+root_agent = LlmAgent(
     name="MediGuideOrchestrator",
     model="gemini-2.0-flash",
 
@@ -145,10 +144,4 @@ and organize their healthcare journey — all while being clear that you are an 
         FunctionTool(func=validate_input),
         FunctionTool(func=check_medications),
     ],
-
-    # Enable multi-turn conversation memory
-    generate_content_config={
-        "temperature": 0.2,  # Low temperature for reliable, consistent medical info
-        "max_output_tokens": 2048,
-    },
 )

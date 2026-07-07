@@ -15,7 +15,7 @@ Design Pattern: This agent is a sub-agent of the OrchestratorAgent.
 It is invoked when the user describes symptoms or asks "what do I have?"
 """
 
-from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
 from google.adk.tools import FunctionTool
 
 from src.tools.medical_tools import (
@@ -122,7 +122,7 @@ def get_body_system_assessment(body_area: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 # Triage Agent Definition
 # ─────────────────────────────────────────────────────────────────────────────
-triage_agent = Agent(
+triage_agent = LlmAgent(
     name="TriageAgent",
     model="gemini-2.0-flash",
 

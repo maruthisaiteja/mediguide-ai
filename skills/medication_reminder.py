@@ -27,6 +27,12 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 
+# Fix Windows cmd.exe Unicode encoding
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 # Add parent directory for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -153,13 +159,13 @@ class MedicationReminderSkill:
             "refill_alert": refill_alert,
             "setup_instructions": self._get_setup_instructions(medication, suggested_times),
             "export_options": [
-                "📱 Set recurring alarms on your phone",
-                "📅 Add to Google Calendar",
-                "💊 Use a pill organizer",
-                "🔔 Enable notifications in a health app (Google Fit, MyFitnessPal)",
+                "Set recurring alarms on your phone",
+                "Add to Google Calendar",
+                "Use a pill organizer",
+                "Enable notifications in a health app (Google Fit, MyFitnessPal)",
             ],
             "safety_reminder": (
-                f"⚠️ Always follow your doctor's exact prescription for {medication}. "
+                f"Always follow your doctor's exact prescription for {medication}. "
                 "Never change your dosage without consulting your healthcare provider."
             ),
         }
@@ -179,31 +185,31 @@ class MedicationReminderSkill:
     def format_for_display(self, reminder: dict) -> str:
         """Formats a reminder for human-readable display."""
         if "error" in reminder:
-            return f"❌ Error: {reminder['error']}"
+            return f"Error: {reminder['error']}"
 
         lines = [
             "\n" + "="*55,
-            f"  💊 Medication Reminder Created",
+            f"  [MediGuide] Medication Reminder Created",
             "="*55,
-            f"\n🆔 Reminder ID: {reminder['reminder_id']}",
-            f"💊 Medication:  {reminder['medication']}",
-            f"⏰ Frequency:   {reminder['frequency']}",
+            f"\nReminder ID: {reminder['reminder_id']}",
+            f"Medication : {reminder['medication']}",
+            f"Frequency  : {reminder['frequency']}",
         ]
 
         if reminder.get("notes"):
-            lines.append(f"📝 Notes:       {reminder['notes']}")
+            lines.append(f"Notes      : {reminder['notes']}")
 
-        lines.append(f"\n📅 Suggested Times:")
+        lines.append(f"\nSuggested Times:")
         for time in reminder.get("suggested_times", []):
-            lines.append(f"   🔔 {time}")
+            lines.append(f"  [ALARM] {time}")
 
         if reminder.get("end_date"):
-            lines.append(f"\n🗓️  Treatment End: {reminder['end_date']}")
+            lines.append(f"\nTreatment End : {reminder['end_date']}")
 
         if reminder.get("refill_alert"):
-            lines.append(f"♻️  {reminder['refill_alert']}")
+            lines.append(f"Refill Alert  : {reminder['refill_alert']}")
 
-        lines.append("\n✅ Adherence Tips:")
+        lines.append("\nAdherence Tips:")
         for tip in reminder.get("adherence_tips", [])[:4]:
             lines.append(f"   • {tip}")
 

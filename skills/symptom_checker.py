@@ -24,6 +24,12 @@ import json
 import sys
 import os
 
+# Fix Windows cmd.exe Unicode encoding
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 # Add parent directory for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.tools.medical_tools import (
@@ -143,38 +149,38 @@ class SymptomCheckerSkill:
 
         lines = [
             "\n" + "="*55,
-            "  🏥 MediGuide Symptom Assessment",
+            "  [MediGuide] Symptom Assessment",
             "="*55,
-            f"\n📋 Symptoms: {', '.join(assessment.get('symptoms_assessed', []))}",
-            f"⏱️  Duration: {assessment.get('duration', 'unknown')}",
-            f"📊 Severity: {assessment.get('severity', 'unknown')}",
+            f"\nSymptoms : {', '.join(assessment.get('symptoms_assessed', []))}",
+            f"Duration : {assessment.get('duration', 'unknown')}",
+            f"Severity : {assessment.get('severity', 'unknown')}",
             "",
-            f"🚦 TRIAGE LEVEL {assessment.get('triage_level', '?')}: "
-            f"{assessment.get('triage_color', '')} — {assessment.get('urgency_description', '')}",
+            f"TRIAGE LEVEL {assessment.get('triage_level', '?')}: "
+            f"{assessment.get('triage_color', '')} -- {assessment.get('urgency_description', '')}",
             "",
-            "✅ RECOMMENDED ACTION:",
+            "RECOMMENDED ACTION:",
             f"   {assessment.get('recommended_action', '')}",
         ]
 
         if assessment.get("possible_condition_categories"):
-            lines.append("\n🩺 Possible Condition Categories:")
+            lines.append("\nPossible Condition Categories:")
             for condition in assessment["possible_condition_categories"][:3]:
-                lines.append(f"   • {condition}")
+                lines.append(f"  - {condition}")
 
         if assessment.get("red_flags_to_watch"):
-            lines.append("\n⚠️  Red Flags to Watch For:")
+            lines.append("\nRed Flags to Watch For:")
             for flag in assessment["red_flags_to_watch"][:3]:
-                lines.append(f"   🔴 {flag}")
+                lines.append(f"  [!] {flag}")
 
         if assessment.get("risk_modifiers"):
-            lines.append("\n📌 Risk Factors Considered:")
+            lines.append("\nRisk Factors Considered:")
             for factor in assessment["risk_modifiers"]:
-                lines.append(f"   • {factor}")
+                lines.append(f"  - {factor}")
 
         lines.extend([
             "",
-            "─" * 55,
-            f"⚠️  {assessment.get('disclaimer', '')}",
+            "-" * 55,
+            f"DISCLAIMER: {assessment.get('disclaimer', '')}",
             "="*55 + "\n",
         ])
 

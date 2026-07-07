@@ -19,7 +19,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 
-from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
 from google.adk.tools import FunctionTool
 
 
@@ -313,7 +313,7 @@ def _generate_appointment_questions(appointment_type: str, reason: str) -> list:
 # ─────────────────────────────────────────────────────────────────────────────
 # Scheduler Agent Definition
 # ─────────────────────────────────────────────────────────────────────────────
-scheduler_agent = Agent(
+scheduler_agent = LlmAgent(
     name="SchedulerAgent",
     model="gemini-2.0-flash",
 
