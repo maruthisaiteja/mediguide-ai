@@ -97,7 +97,7 @@ MediGuide AI is a **multi-agent AI system** built with Google's ADK (Agent Devel
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/mediguide-ai.git
+git clone https://github.com/maruthisaiteja/mediguide-ai.git
 cd mediguide-ai
 ```
 

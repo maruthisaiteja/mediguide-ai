@@ -255,4 +255,4 @@ The project story: Healthcare navigation shouldn't require medical expertise to 
 
 *Word count: ~1,850 words*
 *Track: Agents for Good*
-*GitHub: https://github.com/YOUR_USERNAME/mediguide-ai*
+*GitHub: https://github.com/maruthisaiteja/mediguide-ai*

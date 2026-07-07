@@ -289,7 +289,7 @@ async def root():
             "docs": "GET /docs",
         },
         "project": "MediGuide AI — Kaggle AI Agents Capstone",
-        "github": "https://github.com/YOUR_USERNAME/mediguide-ai",
+        "github": "https://github.com/maruthisaiteja/mediguide-ai",
     }
 
 
