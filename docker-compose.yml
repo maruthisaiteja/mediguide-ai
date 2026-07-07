@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# MediGuide AI — Docker Compose
+# ─────────────────────────────────────────────────────────────────────────────
+# Orchestrates the full MediGuide AI system:
+#   - MCP Medical Knowledge Server
+#   - MediGuide Agent (interactive or API mode)
+#
+# Usage:
+#   Start all services:  docker-compose up
+#   Start MCP only:      docker-compose up mcp-server
+#   Run demo:            docker-compose run --rm agent --demo
+#   Stop all:            docker-compose down
+#
+# Prerequisites:
+#   1. Create .env file from .env.example
+#   2. Add your GOOGLE_API_KEY to .env
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── MCP Medical Knowledge Server ──────────────────────────────────────────
+  mcp-server:
+    build:
+      context: .
+      target: production
+      dockerfile: Dockerfile
+    container_name: mediguide-mcp-server
+    restart: unless-stopped
+    ports:
+      - "${MCP_SERVER_PORT:-8080}:8080"
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+      - MCP_SERVER_PORT=8080
+      - MCP_SERVER_HOST=0.0.0.0
+    command: ["python", "mcp_server/server.py"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mediguide-network
+    volumes:
+      - ./logs:/app/logs  # Persist security audit logs
+
+  # ── MediGuide Agent Service ─────────────────────────────────────────────────
+  agent:
+    build:
+      context: .
+      target: production
+      dockerfile: Dockerfile
+    container_name: mediguide-agent
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - MCP_SERVER_URL=http://mcp-server:8080
+      - APP_ENV=production
+    command: ["python", "src/main.py", "--demo"]
+    networks:
+      - mediguide-network
+    profiles:
+      - demo  # Only starts with: docker-compose --profile demo up
+
+# ── Network ──────────────────────────────────────────────────────────────────
+networks:
+  mediguide-network:
+    driver: bridge
+    name: mediguide-network
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  logs:
+    driver: local

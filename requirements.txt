@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# MediGuide AI — Python Dependencies
+# ─────────────────────────────────────────────────────────────────────────────
+# Install with: pip install -r requirements.txt
+
+# ── Google ADK (Agent Development Kit) ───────────────────────────────────────
+# Core multi-agent framework used to build the orchestrator and sub-agents
+google-adk>=0.1.0
+
+# ── Google Generative AI ─────────────────────────────────────────────────────
+# Gemini model access for LLM inference
+google-generativeai>=0.8.0
+
+# ── MCP Server (FastAPI + Uvicorn) ───────────────────────────────────────────
+# HTTP/SSE transport layer for the Model Context Protocol server
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.0.0
+
+# ── Environment & Configuration ───────────────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Security ──────────────────────────────────────────────────────────────────
+# Used for PII detection patterns (regex is built-in, no extra deps needed)
+# cryptography>=42.0.0  # Uncomment if adding encryption features
+
+# ── Async Support ─────────────────────────────────────────────────────────────
+aiohttp>=3.9.0          # Async HTTP client for MCP communication
+anyio>=4.0.0            # Async compatibility layer
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+rich>=13.0.0             # Beautiful CLI formatting
+click>=8.0.0             # CLI argument parsing
+python-dateutil>=2.8.0   # Date parsing for scheduling
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.0.0
+httpx>=0.27.0            # Async HTTP testing for MCP server
+
+# ── Development ───────────────────────────────────────────────────────────────
+black>=24.0.0            # Code formatting
+flake8>=7.0.0            # Linting
+mypy>=1.8.0              # Type checking

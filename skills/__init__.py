@@ -1,0 +1,3 @@
+"""
+MediGuide AI - Skills Package
+"""
