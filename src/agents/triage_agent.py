@@ -124,7 +124,7 @@ def get_body_system_assessment(body_area: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 triage_agent = LlmAgent(
     name="TriageAgent",
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash",
 
     instruction="""
 You are the MediGuide Triage Specialist — an AI agent with deep expertise in clinical symptom assessment.

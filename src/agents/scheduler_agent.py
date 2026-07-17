@@ -315,7 +315,7 @@ def _generate_appointment_questions(appointment_type: str, reason: str) -> list:
 # ─────────────────────────────────────────────────────────────────────────────
 scheduler_agent = LlmAgent(
     name="SchedulerAgent",
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash",
 
     instruction="""
 You are the MediGuide Health Scheduler — an AI agent that helps users organize

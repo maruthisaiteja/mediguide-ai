@@ -71,7 +71,7 @@ def classify_lesion_triage(skin_features: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 vision_agent = LlmAgent(
     name="VisionAgent",
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash",
 
     instruction="""
 You are the MediGuide Vision Specialist — an AI agent with deep expertise in medical image processing and multimodal analysis.

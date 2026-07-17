@@ -95,7 +95,7 @@ def check_medications(drug_list: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 root_agent = LlmAgent(
     name="MediGuideOrchestrator",
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash",
 
     # System instructions define the agent's personality, scope, and routing logic
     instruction="""

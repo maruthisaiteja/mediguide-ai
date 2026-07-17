@@ -127,7 +127,7 @@ def search_health_info(query: str, source_preference: str = "peer_reviewed") -> 
 # ─────────────────────────────────────────────────────────────────────────────
 research_agent = LlmAgent(
     name="ResearchAgent",
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash",
 
     instruction="""
 You are the MediGuide Medical Research Specialist — an AI agent that synthesizes reliable,
