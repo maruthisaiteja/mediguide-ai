@@ -342,17 +342,47 @@ def validate_health_query(query: str) -> dict:
 
 
 def check_drug_interactions(drug_list: list) -> dict:
-    """Checks a list of drugs for known interactions."""
+    """Checks a list of drugs for known interactions and therapeutic duplications."""
     warnings = []
     drug_list_lower = [d.lower().strip() for d in drug_list]
 
-    for i, drug1 in enumerate(drug_list_lower):
-        for drug2 in drug_list_lower[i+1:]:
-            pair = frozenset([drug1, drug2])
+    # Brand to generic active ingredient mappings for clinical intelligence
+    brand_mappings = {
+        "trimox": "amoxicillin",
+        "timox": "amoxicillin",
+        "amoxil": "amoxicillin",
+        "advil": "ibuprofen",
+        "motrin": "ibuprofen",
+        "coumadin": "warfarin",
+    }
+
+    # Normalize drug list to active ingredients
+    resolved_drugs = []
+    for d in drug_list_lower:
+        resolved = brand_mappings.get(d, d)
+        resolved_drugs.append((d, resolved))
+
+    # 1. Check for Therapeutic Duplications (e.g. Amoxicillin + Trimox)
+    for i, (orig1, gen1) in enumerate(resolved_drugs):
+        for j, (orig2, gen2) in enumerate(resolved_drugs[i+1:]):
+            if gen1 == gen2:
+                warnings.append({
+                    "drug_pair": f"{orig1} + {orig2}",
+                    "severity": "CRITICAL / OVERDOSE RISK",
+                    "interaction": f"Therapeutic Duplication detected. Both contain the active ingredient '{gen1}'.",
+                    "recommendation": f"DO NOT take '{orig1}' and '{orig2}' together. This represents double-dosing of the same active drug.",
+                })
+
+    # 2. Check for Drug-Drug Interactions
+    for i, (orig1, gen1) in enumerate(resolved_drugs):
+        for j, (orig2, gen2) in enumerate(resolved_drugs[i+1:]):
+            if gen1 == gen2:
+                continue # Already handled in duplication
+            pair = frozenset([gen1, gen2])
             if pair in DRUG_INTERACTION_DATABASE:
                 interaction = DRUG_INTERACTION_DATABASE[pair]
                 warnings.append({
-                    "drug_pair": f"{drug1} + {drug2}",
+                    "drug_pair": f"{orig1} + {orig2}",
                     "severity": interaction["severity"],
                     "interaction": interaction["interaction"],
                     "recommendation": interaction["recommendation"],
