@@ -1,6 +1,7 @@
 import docx
 
-doc_path = r'C:\Users\marut\capstone\presentations\Abstract Format.docx'
+doc_path = r'C:\Users\marut\capstone\presentations\Literature Survey Report.docx'
+
 doc = docx.Document(doc_path)
 
 print(f"Total paragraphs: {len(doc.paragraphs)}")
