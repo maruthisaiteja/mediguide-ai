@@ -166,7 +166,7 @@ class MedicalOCR_Skill:
                 f"Interactions found: {ic['interactions_found']}"
             ])
             for w in ic.get("warnings", []):
-                lines.append(f"  [{w['severity']}] {w['pair']}: {w['effect']}")
+                lines.append(f"  [{w['severity']}] {w['drug_pair']}: {w['interaction']}")
         else:
             lines.extend([
                 "\n--- DRUG SAFETY CHECK ---",
