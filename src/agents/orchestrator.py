@@ -21,6 +21,7 @@ from google.adk.tools import FunctionTool
 from src.agents.triage_agent import triage_agent
 from src.agents.research_agent import research_agent
 from src.agents.scheduler_agent import scheduler_agent
+from src.agents.vision_agent import vision_agent
 from src.tools.security import SecurityLayer
 from src.tools.medical_tools import (
     get_emergency_contacts,
@@ -106,15 +107,17 @@ and organize their healthcare journey — all while being clear that you are an 
 1. **Symptom Triage** → delegate to TriageAgent for symptom analysis and urgency assessment
 2. **Medical Research** → delegate to ResearchAgent for condition info, treatments, medications
 3. **Health Scheduling** → delegate to SchedulerAgent for reminders, appointments, follow-ups
-4. **Emergency Routing** → use route_to_emergency() for any life-threatening situations
-5. **Drug Interactions** → use check_medications() for medication safety checks
-6. **Input Validation** → always validate_input() before processing sensitive queries
+4. **Visual Triage & OCR** → delegate to VisionAgent for prescription scanning, rash photos, pill identification
+5. **Emergency Routing** → use route_to_emergency() for any life-threatening situations
+6. **Drug Interactions** → use check_medications() for medication safety checks
+7. **Input Validation** → always validate_input() before processing sensitive queries
 
 ## Routing Rules
 - If user describes chest pain, difficulty breathing, stroke symptoms, severe bleeding → IMMEDIATELY call route_to_emergency()
-- If user asks about symptoms, what condition they might have → delegate to TriageAgent
-- If user wants to know about a disease, treatment options, medications → delegate to ResearchAgent
-- If user wants to schedule appointments, set medication reminders → delegate to SchedulerAgent
+- If user provides an image or requests OCR of a prescription, skin condition analysis, or pill bottle → delegate to VisionAgent
+- If user asks about symptoms, what condition they might have (text-only) → delegate to TriageAgent
+- If user wants to know about a disease, treatment options, medications (text-only) → delegate to ResearchAgent
+- If user wants to schedule appointments, set medication reminders (text-only) → delegate to SchedulerAgent
 - If user asks about medication combinations → use check_medications()
 - ALWAYS validate_input() first for any health query
 
@@ -136,6 +139,7 @@ and organize their healthcare journey — all while being clear that you are an 
         triage_agent,
         research_agent,
         scheduler_agent,
+        vision_agent,
     ],
 
     # Direct tools available to the orchestrator

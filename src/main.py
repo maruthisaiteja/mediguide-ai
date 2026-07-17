@@ -95,9 +95,16 @@ def setup_adk():
     return runner, session_service
 
 
-async def run_agent_query(runner, session_service, user_id: str, session_id: str, query: str) -> str:
+async def run_agent_query(
+    runner,
+    session_service,
+    user_id: str,
+    session_id: str,
+    query: str,
+    image_path: Optional[str] = None
+) -> str:
     """
-    Runs a single query through the MediGuide agent system.
+    Runs a single query (and optional medical image) through the MediGuide agent system.
 
     Args:
         runner: The ADK Runner instance.
@@ -105,12 +112,14 @@ async def run_agent_query(runner, session_service, user_id: str, session_id: str
         user_id: Unique identifier for the user.
         session_id: Unique identifier for this conversation session.
         query: The user's health query.
+        image_path: Optional path to an image for multimodal analysis (Image Processing).
 
     Returns:
         The agent's response as a string.
     """
     from google.genai.types import Content, Part
     from src.tools.security import SecurityLayer
+    from src.tools.vision_tools import preprocess_image, validate_image_file
 
     try:
         # Apply security layer before sending to agent
@@ -129,10 +138,36 @@ async def run_agent_query(runner, session_service, user_id: str, session_id: str
                 f"{', '.join(security_result['redactions_made'])}*"
             )
 
+        # Build message parts (Gemini supports multimodal parts)
+        message_parts = [Part(text=security_result["safe_text"])]
+
+        # If image is attached, process it locally using Pillow (Image Processing Domain)
+        if image_path:
+            validation = validate_image_file(image_path)
+            if not validation["valid"]:
+                return f"[Image Error] {validation['reason']}"
+
+            print(f"🖼️ Preprocessing image: {os.path.basename(image_path)}")
+            print(f"   Original dimensions: {validation['dimensions']} | Size: {validation['size_bytes']} bytes")
+            
+            # Apply Pillow image scaling & normalization
+            img_bytes = preprocess_image(image_path)
+            print(f"   Preprocessed size: {len(img_bytes)} bytes (rescaled for Gemini)")
+            
+            # Append image Part to the multimodal payload
+            message_parts.append(
+                Part(
+                    inline_data={
+                        "mime_type": "image/jpeg",
+                        "data": img_bytes,
+                    }
+                )
+            )
+
         # Create the user message content object (ADK format)
         user_message = Content(
             role="user",
-            parts=[Part(text=security_result["safe_text"])],
+            parts=message_parts,
         )
 
         # Run the agent and collect the final response
@@ -268,8 +303,8 @@ async def interactive_chat():
             print("Please try again or rephrase your question.\n")
 
 
-async def single_query_mode(query: str):
-    """Runs a single query and outputs the result (useful for scripting)."""
+async def single_query_mode(query: str, image_path: Optional[str] = None):
+    """Runs a single query with optional image and outputs the result."""
     runner, session_service = setup_adk()
 
     user_id = "cli_user"
@@ -281,11 +316,15 @@ async def single_query_mode(query: str):
         session_id=session_id,
     )
 
-    print(f"Query: {query}\n")
-    print("Response:")
+    print(f"Query: {query}")
+    if image_path:
+        print(f"Image: {image_path}")
+    print("\nResponse:")
     print("-" * 50)
 
-    response = await run_agent_query(runner, session_service, user_id, session_id, query)
+    response = await run_agent_query(
+        runner, session_service, user_id, session_id, query, image_path
+    )
     print(response)
 
 
@@ -296,12 +335,13 @@ async def single_query_mode(query: str):
 def parse_args():
     """Parses command-line arguments."""
     parser = argparse.ArgumentParser(
-        description="MediGuide AI — Multi-Agent Healthcare Assistant",
+        description="MediGuide AI — Multi-Agent Healthcare Assistant (Image Processing Enabled)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   Interactive mode:     python src/main.py
-  Single query:         python src/main.py --query "I have a headache and fever for 2 days"
+  Single query (text):  python src/main.py --query "I have a headache and fever for 2 days"
+  Single query (image): python src/main.py --image path/to/prescription.jpg --query "OCR this prescription"
   Start MCP server:     python mcp_server/server.py
   With Docker:          docker-compose up
         """,
@@ -311,6 +351,13 @@ Examples:
         "--query", "-q",
         type=str,
         help="Run a single query and exit (non-interactive mode)",
+    )
+
+    parser.add_argument(
+        "--image", "-i",
+        type=str,
+        default=None,
+        help="Path to a medical image/prescription file for multimodal analysis (Image Processing)",
     )
 
     parser.add_argument(
@@ -365,9 +412,15 @@ def main():
     if args.demo:
         asyncio.run(run_demo())
     elif args.query:
-        asyncio.run(single_query_mode(args.query))
+        asyncio.run(single_query_mode(args.query, args.image))
     else:
-        asyncio.run(interactive_chat())
+        # In interactive mode, check if --image is supplied at startup
+        if args.image:
+            print(f"🖼️ Running interactive mode with preloaded image: {args.image}")
+            # If image supplied at startup without query, we ask user what to do with it
+            asyncio.run(single_query_mode("Please analyze this medical image", args.image))
+        else:
+            asyncio.run(interactive_chat())
 
 
 if __name__ == "__main__":

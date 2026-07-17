@@ -28,13 +28,14 @@ MediGuide AI is a **multi-agent AI system** built with Google's ADK (Agent Devel
 
 | Component | Purpose |
 |---|---|
-| 🧠 **Orchestrator Agent** | Routes queries to the right specialist sub-agent |
+| 🧠 **Orchestrator Agent** | Routes queries to the right specialist sub-agent (text & visual) |
+| 👁️ **Vision Agent** | Analyzes medical images, prescriptions, skin rashes, and pills |
 | 🚦 **Triage Agent** | Analyzes symptoms with 5-level urgency classification |
 | 📚 **Research Agent** | Retrieves evidence-based medical information via MCP |
 | 📅 **Scheduler Agent** | Manages medication reminders and appointments |
 | 🔒 **Security Layer** | PII redaction, injection detection, audit logging |
 | 🔌 **MCP Server** | Custom Model Context Protocol medical knowledge server |
-| 🛠️ **Agent Skills** | Reusable CLI-compatible symptom checker & medication reminder skills |
+| 🛠️ **Agent Skills** | Reusable CLI-compatible symptom, medication, and OCR skills |
 
 ---
 
@@ -128,8 +129,11 @@ python mcp_server/server.py
 # Interactive chat mode
 python src/main.py
 
-# Single query mode
+# Single query mode (text)
 python src/main.py --query "I have a headache and fever for 2 days"
+
+# Single query mode (multimodal image processing)
+python src/main.py --image prescription.png --query "Scan this prescription and check interactions"
 
 # Run demo with sample queries
 python src/main.py --demo
@@ -181,11 +185,14 @@ python skills/symptom_checker.py --symptoms "fever, headache, fatigue" --duratio
 # Run medication reminder skill
 python skills/medication_reminder.py --medication "metformin" --frequency "twice daily" --notes "take with meals"
 
+# Run medical OCR skill (Image Processing)
+python skills/medical_ocr.py --image prescription.png
+
 # JSON output mode
 python skills/symptom_checker.py --symptoms "chest pain" --json
 
 # Skills in pipeline mode (Agents CLI compatible)
-echo '{"symptoms": "fever, headache"}' | python skills/symptom_checker.py
+echo '{"image_path": "prescription.png"}' | python skills/medical_ocr.py
 
 # View skill metadata
 python skills/symptom_checker.py --metadata

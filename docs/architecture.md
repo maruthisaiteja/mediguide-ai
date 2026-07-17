@@ -25,8 +25,14 @@ MediGuide AI is a multi-agent healthcare navigation system implementing the foll
   - `route_to_emergency()` — Immediate emergency response
   - `validate_input()` — Query validation
   - `check_medications()` — Drug interaction checking
-- **Sub-agents**: TriageAgent, ResearchAgent, SchedulerAgent
+- **Sub-agents**: TriageAgent, ResearchAgent, SchedulerAgent, VisionAgent
 - **Memory**: InMemorySessionService (multi-turn conversation)
+
+#### VisionAgent (`vision_agent.py`) [NEW]
+- **Type**: Sub-agent (Google ADK `Agent`)
+- **Role**: Multimodal analysis of prescriptions, skin lesions, and pill labels
+- **Tools**: `check_extracted_prescription()`, `classify_lesion_triage()`
+- **Image Pipeline**: Integrated with Pillow downscaling, RGB conversion, and JPEG normalization before API dispatch.
 
 #### TriageAgent (`triage_agent.py`)
 - **Type**: Sub-agent (Google ADK `Agent`)
@@ -155,6 +161,38 @@ Agent Response → [Output Scan] → User
 - **Features**: Smart frequency parsing, adherence tips, side effect monitoring, refill alerts
 - **Frequency patterns**: 15+ natural language patterns (twice daily, every 8 hours, with meals, etc.)
 
+#### MedicalOCR_Skill (`medical_ocr.py`) [NEW]
+- **Agents CLI compatible**: Reads JSON from stdin/CLI parameters
+- **Features**: Preprocesses prescription images using Pillow, runs OCR text extraction using Gemini Vision, parses medications, and checks safety interactions.
+- **Output Formats**: Human-readable transcription and warnings report, or raw JSON object.
+
+---
+
+## Image Processing Pipeline (`src/tools/vision_tools.py`)
+
+To align with academic and production-level **Image Processing** guidelines, MediGuide Vision utilizes a structured local image processing pipeline before sending content to generative AI models:
+
+```
+[Uploaded Image]
+       │
+       ▼
+1. Validation (PIL/Pillow) ────► Checks existence, file size, format integrity
+       │ (Success)
+       ▼
+2. Normalization ──────────────► Converts pixel mode to standard RGB
+       │
+       ▼
+3. Lanczos Rescaling ──────────► Resizes large photos to max 1024x1024 to optimize tokens
+       │
+       ▼
+4. JPEG Byte Compression ──────► Compresses to JPEG bytes (quality=85)
+       │
+       ▼
+[Gemini Vision Part Payload]
+```
+
+This guarantees fast execution times, prevents payload size failures, and filters corrupted images at the application layer.
+
 ---
 
 ## Data Flow Diagrams
@@ -196,6 +234,20 @@ Agent Response → [Output Scan] → User
     → Generates schedule: ["08:00", "20:00"]
     → Adherence tips, monitoring reminders
     → User gets full reminder setup guidance
+```
+
+### Multimodal Vision Flow (Prescription OCR)
+```
+"Analyze this prescription" [--image prescription.png]
+    → VisionTools.validate_image_file() & preprocess_image()
+    → Rescales to max 1024x1024 (Pillow Lanczos Resampling)
+    → SecurityLayer (clean text query)
+    → OrchestratorAgent → delegates to VisionAgent
+    → VisionAgent receives multimodal Part (JPEG bytes + text)
+    → Gemini Vision extracts prescription details via OCR
+    → VisionAgent calls check_extracted_prescription()
+        → check_drug_interactions() (safety warnings)
+    → User receives detailed transcription + interaction report
 ```
 
 ---
