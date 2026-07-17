@@ -86,9 +86,10 @@ class MedicalOCR_Skill:
             result["extracted_medications"] = ["metformin", "ibuprofen"]
         else:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=self.api_key)
-                model = genai.GenerativeModel("gemini-2.0-flash")
+                from google import genai
+                from google.genai import types
+                
+                client = genai.Client(api_key=self.api_key)
                 
                 # Call Gemini vision directly
                 prompt = (
@@ -99,10 +100,13 @@ class MedicalOCR_Skill:
                     "DRUGS: [JSON list of medication names]"
                 )
                 
-                response = model.generate_content([
-                    {"mime_type": "image/jpeg", "data": img_bytes},
-                    prompt
-                ])
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=[
+                        types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg"),
+                        prompt
+                    ]
+                )
                 
                 text = response.text
                 result["transcription"] = text
@@ -186,8 +190,10 @@ def main():
         print(json.dumps(skill.METADATA, indent=2))
         return
 
-    # Check for stdin inputs (Agents CLI compatibility)
-    if not sys.stdin.isatty():
+    # Prioritize CLI argument first, fallback to stdin JSON if redirected
+    if args.image:
+        image_path = args.image
+    elif not sys.stdin.isatty():
         try:
             stdin_data = sys.stdin.read()
             data = json.loads(stdin_data)
@@ -196,7 +202,7 @@ def main():
             print(json.dumps({"status": "error", "error": f"Failed to parse stdin: {str(e)}"}))
             sys.exit(1)
     else:
-        image_path = args.image
+        image_path = None
 
     if not image_path:
         print("❌ Error: --image path is required or input must be piped via JSON.")
@@ -205,7 +211,8 @@ def main():
 
     result = skill.run(image_path)
     
-    if args.json or not sys.stdin.isatty():
+    # If standard output is redirected or --json is passed, output JSON
+    if args.json or not sys.stdout.isatty():
         print(json.dumps(result, indent=2))
     else:
         print(skill.format_for_display(result))
