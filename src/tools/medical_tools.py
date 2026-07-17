@@ -604,3 +604,234 @@ def search_medical_database(query: str, source_preference: str = "peer_reviewed"
         "confidence": "high" if results else "low",
         "disclaimer": "Search results are from curated medical knowledge base for educational purposes.",
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Health Risk Score Engine
+# ─────────────────────────────────────────────────────────────────────────────
+
+def compute_health_risk_score(
+    symptoms: list,
+    duration: str,
+    severity: str,
+    age: int,
+    gender: str,
+    existing_conditions: str,
+    red_flags: list = None,
+) -> dict:
+    """
+    Computes a quantified Health Risk Score (1-100) using a weighted multi-factor
+    clinical algorithm. This transforms vague triage colors into a measurable,
+    defensible clinical risk metric.
+
+    Scoring Factors:
+      - Symptom Urgency Base (0-35 pts)
+      - Symptom Count (0-10 pts)
+      - Duration (0-10 pts)
+      - Severity (0-15 pts)
+      - Age Risk (0-10 pts)
+      - Existing Conditions (0-10 pts)
+      - Red Flag Multiplier (0-10 pts bonus)
+
+    Args:
+        symptoms: List of symptom strings (e.g., ["chest pain", "shortness of breath"]).
+        duration: Duration string (e.g., "2 days", "3 weeks").
+        severity: "mild", "moderate", or "severe".
+        age: Patient age in years.
+        gender: "male", "female", or "unknown".
+        existing_conditions: String of pre-existing conditions (e.g., "diabetes, hypertension").
+        red_flags: Optional list of detected red flag symptoms.
+
+    Returns:
+        dict with score (1-100), risk_tier, gauge_display, contributing_factors, and recommendations.
+    """
+    score = 0
+    factors = []
+    red_flags = red_flags or []
+
+    # ── Factor 1: Symptom Urgency Base (max 35 pts) ──────────────────────────
+    max_urgency = 1
+    matched_symptoms = []
+    for symptom in symptoms:
+        symptom_lower = symptom.lower()
+        for db_symptom, data in SYMPTOM_DATABASE.items():
+            if db_symptom in symptom_lower or symptom_lower in db_symptom:
+                matched_symptoms.append(db_symptom)
+                max_urgency = max(max_urgency, data["urgency_base"])
+                break
+
+    # Emergency symptoms override
+    emergency_keywords = ["chest pain", "heart attack", "stroke", "can't breathe",
+                          "difficulty breathing", "unconscious", "severe bleeding",
+                          "seizure", "anaphylaxis", "overdose"]
+    for s in symptoms:
+        if any(kw in s.lower() for kw in emergency_keywords):
+            max_urgency = 5
+            break
+
+    urgency_score = {1: 7, 2: 14, 3: 21, 4: 28, 5: 35}.get(max_urgency, 14)
+    score += urgency_score
+    factors.append({
+        "factor": "Symptom Urgency",
+        "points": urgency_score,
+        "detail": f"Urgency level {max_urgency}/5 based on {len(symptoms)} symptom(s)",
+    })
+
+    # ── Factor 2: Symptom Count (max 10 pts) ─────────────────────────────────
+    count_pts = min(10, len(symptoms) * 2)
+    score += count_pts
+    if count_pts > 0:
+        factors.append({
+            "factor": "Symptom Count",
+            "points": count_pts,
+            "detail": f"{len(symptoms)} symptoms reported (multiple symptoms = higher concern)",
+        })
+
+    # ── Factor 3: Duration (max 10 pts) ──────────────────────────────────────
+    duration_lower = duration.lower()
+    duration_pts = 3  # default
+    if any(x in duration_lower for x in ["month", "year", "chronic"]):
+        duration_pts = 10
+        dur_label = "Chronic (months/years)"
+    elif any(x in duration_lower for x in ["week", "weeks"]):
+        duration_pts = 7
+        dur_label = "Extended (weeks)"
+    elif any(x in duration_lower for x in ["day", "days"]):
+        duration_pts = 4
+        dur_label = "Short (days)"
+    elif any(x in duration_lower for x in ["hour", "hours", "sudden", "sudden onset"]):
+        duration_pts = 8  # Sudden onset = higher risk for some conditions
+        dur_label = "Sudden onset"
+    else:
+        dur_label = "Unknown duration"
+
+    score += duration_pts
+    factors.append({
+        "factor": "Duration",
+        "points": duration_pts,
+        "detail": dur_label,
+    })
+
+    # ── Factor 4: Severity (max 15 pts) ──────────────────────────────────────
+    severity_map = {"mild": 3, "moderate": 9, "severe": 15}
+    sev_pts = severity_map.get(severity.lower(), 9)
+    score += sev_pts
+    factors.append({
+        "factor": "Reported Severity",
+        "points": sev_pts,
+        "detail": f"Patient-reported severity: {severity}",
+    })
+
+    # ── Factor 5: Age Risk (max 10 pts) ──────────────────────────────────────
+    if age >= 75:
+        age_pts = 10
+        age_label = "Very elderly (75+) — highest risk"
+    elif age >= 65:
+        age_pts = 7
+        age_label = "Elderly (65-74) — elevated risk"
+    elif age >= 50:
+        age_pts = 4
+        age_label = "Middle-aged (50-64) — moderate risk"
+    elif age <= 5 or age <= 2:
+        age_pts = 8
+        age_label = "Infant/young child — elevated risk"
+    elif age <= 12:
+        age_pts = 5
+        age_label = "Child — moderate risk"
+    else:
+        age_pts = 1
+        age_label = "Adult (13-49) — baseline risk"
+
+    score += age_pts
+    factors.append({
+        "factor": "Age Risk",
+        "points": age_pts,
+        "detail": age_label,
+    })
+
+    # ── Factor 6: Existing Conditions (max 10 pts) ───────────────────────────
+    high_risk_conditions = [
+        "diabetes", "heart disease", "cardiac", "cancer", "hiv", "aids",
+        "copd", "asthma", "kidney disease", "liver disease", "immunocompromised",
+        "hypertension", "stroke", "autoimmune", "transplant",
+    ]
+    conditions_lower = existing_conditions.lower()
+    matched_conditions = [c for c in high_risk_conditions if c in conditions_lower]
+    cond_pts = min(10, len(matched_conditions) * 4)
+    if conditions_lower not in ["none", "n/a", "unknown", ""]:
+        cond_pts = max(cond_pts, 3)  # At least 3 pts if any condition mentioned
+
+    score += cond_pts
+    if cond_pts > 0:
+        factors.append({
+            "factor": "Pre-existing Conditions",
+            "points": cond_pts,
+            "detail": f"Risk-elevating conditions: {', '.join(matched_conditions) if matched_conditions else existing_conditions}",
+        })
+
+    # ── Factor 7: Red Flags Bonus (max 10 pts) ───────────────────────────────
+    red_flag_keywords = [
+        "chest pain", "difficulty breathing", "sudden severe headache",
+        "loss of consciousness", "paralysis", "vision loss", "blood in stool",
+        "coughing blood", "severe abdominal pain", "high fever",
+    ]
+    detected_red_flags = []
+    for symptom in symptoms:
+        for flag in red_flag_keywords:
+            if flag in symptom.lower():
+                detected_red_flags.append(flag)
+    detected_red_flags += [f for f in red_flags if f]
+
+    red_flag_pts = min(10, len(set(detected_red_flags)) * 5)
+    score += red_flag_pts
+    if red_flag_pts > 0:
+        factors.append({
+            "factor": "Red Flag Symptoms",
+            "points": red_flag_pts,
+            "detail": f"Red flags detected: {', '.join(set(detected_red_flags)[:3])}",
+        })
+
+    # Cap score at 100
+    score = min(100, score)
+
+    # ── Risk Tier Classification ──────────────────────────────────────────────
+    if score >= 80:
+        risk_tier = "CRITICAL"
+        tier_color = "RED"
+        recommendation = "SEEK EMERGENCY CARE IMMEDIATELY. Call 112/108/911 or go to the nearest ER."
+    elif score >= 60:
+        risk_tier = "HIGH"
+        tier_color = "ORANGE"
+        recommendation = "Seek medical attention TODAY. Visit urgent care or call your doctor immediately."
+    elif score >= 40:
+        risk_tier = "MODERATE"
+        tier_color = "YELLOW"
+        recommendation = "Schedule a GP appointment within 24-48 hours. Monitor symptoms closely."
+    elif score >= 20:
+        risk_tier = "LOW-MODERATE"
+        tier_color = "YELLOW-GREEN"
+        recommendation = "Monitor symptoms. Visit GP within 3-5 days if no improvement."
+    else:
+        risk_tier = "LOW"
+        tier_color = "GREEN"
+        recommendation = "Likely self-limiting. Rest, hydrate, and monitor. Visit GP if symptoms worsen."
+
+    # ── ASCII Gauge Display ───────────────────────────────────────────────────
+    filled = int(score / 5)  # 20 segments for 100 score
+    empty = 20 - filled
+    gauge = f"[{'#' * filled}{'.' * empty}] {score}/100"
+
+    return {
+        "health_risk_score": score,
+        "risk_tier": risk_tier,
+        "triage_color": tier_color,
+        "gauge_display": gauge,
+        "contributing_factors": factors,
+        "recommendation": recommendation,
+        "matched_symptoms": matched_symptoms,
+        "detected_red_flags": list(set(detected_red_flags)),
+        "disclaimer": (
+            "This Health Risk Score is a decision-support tool based on reported symptoms only. "
+            "It is NOT a medical diagnosis. Always consult a qualified healthcare professional."
+        ),
+    }
