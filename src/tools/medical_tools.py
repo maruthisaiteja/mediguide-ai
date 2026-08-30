@@ -788,8 +788,9 @@ def compute_health_risk_score(
         factors.append({
             "factor": "Red Flag Symptoms",
             "points": red_flag_pts,
-            "detail": f"Red flags detected: {', '.join(set(detected_red_flags)[:3])}",
+            "detail": f"Red flags detected: {', '.join(list(set(detected_red_flags))[:3])}",
         })
+
 
     # Cap score at 100
     score = min(100, score)

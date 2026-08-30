@@ -329,7 +329,12 @@ def generate_medication_schedule(medications: List[Dict]) -> dict:
     }
 
 
+# Alias for backward compatibility
+create_medication_schedule = generate_medication_schedule
+
+
 def format_food_drug_display(result: dict) -> str:
+
     """Formats food-drug interaction results for terminal display."""
     lines = ["=" * 70,
              "  [MediGuide AI] Food-Drug & Lifestyle Interaction Safety Check",
