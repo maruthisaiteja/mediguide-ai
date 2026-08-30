@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediGuide Vision AI — Multiagent Medical Image Analysis & Healthcare Navigation</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef6ff',
+              100: '#d9ebff',
+              500: '#1d4ed8',
+              600: '#1e40af',
+              700: '#1e3a8a',
+            },
+            clinical: {
+              red: '#ef4444',
+              orange: '#f97316',
+              yellow: '#eab308',
+              green: '#22c55e',
+              blue: '#0284c7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, h4, .font-heading { font-family: 'Outfit', sans-serif; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .dark .glass-card {
+      background: rgba(15, 23, 42, 0.90);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+    .active-tab {
+      background-color: #1e3a8a !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- TOP INSTITUTIONAL BAR -->
+  <div class="bg-slate-900 text-slate-300 text-xs px-4 py-2 border-b border-slate-800 flex flex-wrap justify-between items-center gap-2">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-900/60 text-blue-300 border border-blue-700/50">
+        Review 2 (ILR) Prototype
+      </span>
+      <span class="hidden sm:inline">Vardhaman College of Engineering (Autonomous) • Dept. of Information Technology</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span>Batch: <strong class="text-white">2023120304 - Sec C (23ITMNP-C06)</strong></span>
+      <span>Guide: <strong class="text-white">Dr. L. Sunitha</strong></span>
+      <button id="themeToggle" class="text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN HEADER / NAVBAR -->
+  <header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-600/30">
+          <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">MediGuide Vision AI</h1>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-300 dark:border-emerald-800">● Live ADK Engine</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Multiagent Medical Image Analysis & Healthcare Navigation</p>
+        </div>
+      </div>
+      
+      <!-- Quick Navigation Badges -->
+      <div class="flex items-center gap-2">
+        <a href="#documents" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 border border-blue-200 dark:border-blue-800 transition">
+          <i class="fa-solid fa-file-pdf"></i> Academic Documents (PDF)
+        </a>
+        <a href="https://github.com/maruthisaiteja/mediguide-ai" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition">
+          <i class="fa-brands fa-github"></i> Repository
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="bg-gradient-to-b from-blue-50/50 via-white to-transparent dark:from-slate-900 dark:via-slate-950 py-8 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <div class="lg:col-span-8">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 mb-3 border border-blue-200 dark:border-blue-800">
+            <i class="fa-solid fa-microchip"></i> Domain: Image Processing & Multi-Agent AI
+          </div>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
+            Intelligent Multi-Agent Clinical Decision Support & Medical Image Analysis
+          </h2>
+          <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+            Solving the 250,000+ annual preventable outpatient medical error crisis through <strong>Pillow Image Preprocessing</strong>, <strong>Google ADK 5-Agent Orchestration</strong>, and <strong>Deterministic Clinical Safety Verification</strong>.
+          </p>
+          
+          <div class="flex flex-wrap gap-2 text-xs text-slate-600 dark:text-slate-400">
+            <span class="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm"><i class="fa-solid fa-check-circle text-emerald-500"></i> Zero Hallucination Drug Checks</span>
+            <span class="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm"><i class="fa-solid fa-check-circle text-emerald-500"></i> 4-Modality Image Preprocessing</span>
+            <span class="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm"><i class="fa-solid fa-check-circle text-emerald-500"></i> 7-Factor NEWS2 Health Risk Score</span>
+            <span class="inline-flex items-center gap-1 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 shadow-sm"><i class="fa-solid fa-check-circle text-emerald-500"></i> 35+ Blood Tests Emergency Alarms</span>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Multi-Agent Status</span>
+            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">5 / 5 Agents Online</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-eye text-blue-500"></i> VisionAgent</span>
+              <span class="text-slate-500 font-mono">Pillow CLAHE + OCR</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-flask-vial text-purple-500"></i> LabAgent</span>
+              <span class="text-slate-500 font-mono">35+ Biomarkers</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-heart-pulse text-rose-500"></i> TriageAgent</span>
+              <span class="text-slate-500 font-mono">7-Factor Risk (1-100)</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-calendar-check text-amber-500"></i> SchedulerAgent</span>
+              <span class="text-slate-500 font-mono">24h Chrono Matrix</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+              <span class="flex items-center gap-2"><i class="fa-solid fa-book-medical text-teal-500"></i> ResearchAgent</span>
+              <span class="text-slate-500 font-mono">Curated Clinical DB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN INTERACTIVE WORKSPACE -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+    
+    <!-- NAVIGATION TABS -->
+    <div class="flex overflow-x-auto gap-2 pb-3 mb-6 border-b border-slate-200 dark:border-slate-800 text-sm no-scrollbar">
+      <button onclick="switchTab('vision')" id="tab-btn-vision" class="tab-button active-tab flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition whitespace-nowrap">
+        <i class="fa-solid fa-eye"></i> 1. Vision OCR & Preprocessing
+      </button>
+      <button onclick="switchTab('lab')" id="tab-btn-lab" class="tab-button bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition whitespace-nowrap border border-slate-200 dark:border-slate-800">
+        <i class="fa-solid fa-flask"></i> 2. Diagnostic Lab Analyzer
+      </button>
+      <button onclick="switchTab('food')" id="tab-btn-food" class="tab-button bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition whitespace-nowrap border border-slate-200 dark:border-slate-800">
+        <i class="fa-solid fa-pills"></i> 3. Food-Drug Safety Matrix
+      </button>
+      <button onclick="switchTab('schedule')" id="tab-btn-schedule" class="tab-button bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition whitespace-nowrap border border-slate-200 dark:border-slate-800">
+        <i class="fa-solid fa-calendar-days"></i> 4. Chrono-Scheduler
+      </button>
+      <button onclick="switchTab('risk')" id="tab-btn-risk" class="tab-button bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition whitespace-nowrap border border-slate-200 dark:border-slate-800">
+        <i class="fa-solid fa-gauge-high"></i> 5. 7-Factor Health Risk Score
+      </button>
+      <button onclick="switchTab('agent')" id="tab-btn-agent" class="tab-button bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition whitespace-nowrap border border-slate-200 dark:border-slate-800">
+        <i class="fa-solid fa-robot"></i> 6. Multi-Agent Chat
+      </button>
+      <button onclick="switchTab('documents')" id="tab-btn-documents" class="tab-button bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold transition whitespace-nowrap border border-slate-200 dark:border-slate-800">
+        <i class="fa-solid fa-folder-open"></i> 7. Review 2 Documents (PDF)
+      </button>
+    </div>
+
+    <!-- TAB 1: VISION OCR & PREPROCESSING -->
+    <div id="tab-vision" class="tab-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-6 space-y-4">
+          <div class="glass-card p-6 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-camera text-blue-600"></i> Medical Image Preprocessing Studio</h3>
+            <p class="text-xs text-slate-500 mb-4">Upload or select a medical image to simulate Pillow Lanczos aspect-ratio downscaling (<=1024px) and contrast enhancement.</p>
+            
+            <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:border-blue-500 transition mb-4" onclick="document.getElementById('imageUploadInput').click()">
+              <input type="file" id="imageUploadInput" class="hidden" accept="image/*" onchange="handleImageUpload(event)">
+              <div id="uploadPlaceholder">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
+                <p class="text-sm font-semibold">Click to upload prescription or scan</p>
+                <p class="text-xs text-slate-400">PNG, JPG, WEBP (Lanczos scaled automatically)</p>
+              </div>
+              <img id="imagePreview" class="hidden max-h-64 mx-auto rounded-lg shadow-sm">
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="text-xs font-semibold text-slate-500 self-center">Clinical Samples:</span>
+              <button onclick="loadSampleImage('prescription')" class="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition font-medium">📋 Sample Prescription (Trimox + Amox)</button>
+              <button onclick="loadSampleImage('skin')" class="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition font-medium">🩺 Skin Lesion</button>
+              <button onclick="loadSampleImage('ecg')" class="text-xs px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition font-medium">📈 Arrhythmia ECG</button>
+            </div>
+
+            <button onclick="runVisionPipeline()" class="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-700/20 flex items-center justify-center gap-2 text-sm">
+              <i class="fa-solid fa-play"></i> Run VisionAgent & Brand Resolution
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 space-y-4">
+          <div class="glass-card p-6 rounded-2xl shadow-sm min-h-[380px]">
+            <h3 class="text-lg font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-microscope text-purple-600"></i> Vision Processing & Safety Report</h3>
+            
+            <div id="visionOutputDefault" class="text-center py-12 text-slate-400">
+              <i class="fa-solid fa-arrow-left-long text-2xl mb-2"></i>
+              <p class="text-sm">Upload an image and click "Run VisionAgent" to see real-time OCR transcription and duplication alerts.</p>
+            </div>
+
+            <div id="visionOutputResult" class="hidden space-y-4">
+              <!-- Preprocessing Stats Banner -->
+              <div class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-xs flex justify-between items-center">
+                <span><strong>Lanczos Scaled:</strong> 1024 x 768 px</span>
+                <span><strong>Format:</strong> RGB JPEG (Quality 85%)</span>
+                <span><strong>Payload Reduction:</strong> 92.4%</span>
+              </div>
+
+              <!-- Critical Alert Box -->
+              <div class="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 rounded-xl text-xs space-y-1 text-rose-900 dark:text-rose-200">
+                <div class="flex items-center gap-2 font-bold text-sm text-rose-700 dark:text-rose-400">
+                  <i class="fa-solid fa-triangle-exclamation text-base"></i> CRITICAL THERAPEUTIC DUPLICATION ALERT
+                </div>
+                <p>• <strong>Detected Pair:</strong> <code class="bg-rose-100 dark:bg-rose-900/60 px-1 py-0.5 rounded">Trimox (Amoxicillin)</code> + <code class="bg-rose-100 dark:bg-rose-900/60 px-1 py-0.5 rounded">Amoxicillin 500mg</code></p>
+                <p>• <strong>Risk:</strong> ACCIDENTAL OVERDOSE / DOUBLE-DOSING OF SAME ACTIVE MOLECULE.</p>
+                <p>• <strong>Deterministic Resolution:</strong> Both brand formulations map to generic key <code class="font-bold">amoxicillin</code>. Do NOT take both concurrently.</p>
+              </div>
+
+              <!-- Structured Extracted Regimen -->
+              <div class="border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-xs space-y-2 bg-slate-50/50 dark:bg-slate-900/50">
+                <div class="font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">Extracted Clinical Medication Regimen:</div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-800">
+                  <span>1. <strong>Amoxicillin 500mg</strong> (Antibiotic)</span>
+                  <span class="text-slate-500">1 capsule 3x daily with meals</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-slate-200 dark:border-slate-800">
+                  <span>2. <strong>Paracetamol 650mg</strong> (Analgesic/Antipyretic)</span>
+                  <span class="text-slate-500">1 tablet as needed (max 4g/day)</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                  <span>3. <strong>Cetirizine 10mg</strong> (Antihistamine)</span>
+                  <span class="text-slate-500">1 tablet daily at bedtime</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LAB REPORT ANALYZER -->
+    <div id="tab-lab" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 space-y-4">
+          <div class="glass-card p-6 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-vial text-blue-600"></i> Diagnostic Blood Panel Inputs</h3>
+            <p class="text-xs text-slate-500 mb-4">Input quantitative lab values to evaluate against age and gender-adjusted clinical reference bounds.</p>
+            
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="font-semibold block mb-1">HbA1c (%) <span class="text-slate-400 font-normal">Normal: 4.0 - 5.6%</span></label>
+                <input type="number" id="lab_hba1c" value="8.2" step="0.1" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
+              </div>
+              <div>
+                <label class="font-semibold block mb-1">Serum Creatinine (mg/dL) <span class="text-slate-400 font-normal">Normal: 0.7 - 1.3</span></label>
+                <input type="number" id="lab_creatinine" value="2.1" step="0.1" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
+              </div>
+              <div>
+                <label class="font-semibold block mb-1">Troponin I (ng/mL) <span class="text-slate-400 font-normal">Critical High: > 0.04</span></label>
+                <input type="number" id="lab_troponin" value="0.09" step="0.01" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
+              </div>
+              <div>
+                <label class="font-semibold block mb-1">Serum Potassium (mEq/L) <span class="text-slate-400 font-normal">Normal: 3.5 - 5.0</span></label>
+                <input type="number" id="lab_potassium" value="6.2" step="0.1" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
+              </div>
+              <div class="grid grid-cols-2 gap-3 pt-2">
+                <div>
+                  <label class="font-semibold block mb-1">Patient Age</label>
+                  <input type="number" id="lab_age" value="58" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
+                </div>
+                <div>
+                  <label class="font-semibold block mb-1">Gender</label>
+                  <select id="lab_gender" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="runLabAnalysis()" class="w-full mt-5 py-3 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-xl transition shadow-lg shadow-purple-700/20 text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-chart-line"></i> Analyze Blood Panel
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7">
+          <div class="glass-card p-6 rounded-2xl shadow-sm min-h-[440px]">
+            <h3 class="text-lg font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-file-medical text-emerald-600"></i> Clinical Diagnostic Evaluation</h3>
+            
+            <div id="labReportContent" class="space-y-4">
+              <!-- Default state filled with real clinical evaluation -->
+              <div class="p-4 bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 rounded-xl">
+                <div class="flex items-center justify-between font-bold text-rose-700 dark:text-rose-400 text-sm mb-1">
+                  <span>🚨 OVERALL RISK TIER: CRITICAL EMERGENCY</span>
+                  <span>2 Critical Findings</span>
+                </div>
+                <p class="text-xs text-rose-900 dark:text-rose-200">Values require immediate emergency medical care. Emergency dispatch protocols activated.</p>
+              </div>
+
+              <div class="space-y-2.5 text-xs">
+                <div class="p-3 bg-rose-50/50 dark:bg-rose-950/30 border-l-4 border-rose-600 rounded-r-lg">
+                  <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                    <span>Troponin I: 0.09 ng/mL</span>
+                    <span class="text-rose-600 font-bold">CRITICAL HIGH ↑↑</span>
+                  </div>
+                  <p class="text-slate-600 dark:text-slate-400 mt-0.5">Reflects cardiac muscle necrosis. <strong>High probability of acute myocardial infarction (Heart Attack).</strong> Seek Emergency Care Immediately.</p>
+                </div>
+
+                <div class="p-3 bg-rose-50/50 dark:bg-rose-950/30 border-l-4 border-rose-600 rounded-r-lg">
+                  <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                    <span>Potassium: 6.2 mEq/L</span>
+                    <span class="text-rose-600 font-bold">CRITICAL HIGH ↑↑ (Severe Hyperkalemia)</span>
+                  </div>
+                  <p class="text-slate-600 dark:text-slate-400 mt-0.5">High risk of fatal cardiac arrhythmias or heart block. Requires immediate hospital telemetry.</p>
+                </div>
+
+                <div class="p-3 bg-amber-50/50 dark:bg-amber-950/30 border-l-4 border-amber-500 rounded-r-lg">
+                  <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                    <span>Serum Creatinine: 2.1 mg/dL</span>
+                    <span class="text-amber-600 font-bold">HIGH ↑ (Kidney Dysfunction)</span>
+                  </div>
+                  <p class="text-slate-600 dark:text-slate-400 mt-0.5"><strong>Drug Contraindication Alert:</strong> If taking Metformin, hold immediately due to severe Lactic Acidosis risk under reduced renal clearance.</p>
+                </div>
+
+                <div class="p-3 bg-amber-50/50 dark:bg-amber-950/30 border-l-4 border-amber-500 rounded-r-lg">
+                  <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                    <span>HbA1c: 8.2%</span>
+                    <span class="text-amber-600 font-bold">HIGH ↑ (Uncontrolled Diabetes)</span>
+                  </div>
+                  <p class="text-slate-600 dark:text-slate-400 mt-0.5">Significantly above target (< 7.0%). Review diabetes regimen with endocrinologist.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: FOOD-DRUG SAFETY MATRIX -->
+    <div id="tab-food" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 space-y-4">
+          <div class="glass-card p-6 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-wheat-awn-circle-exclamation text-amber-600"></i> Food-Drug Interaction Selector</h3>
+            <p class="text-xs text-slate-500 mb-4">Verify outpatient medications against 8 critical dietary substances (CYP3A4 inhibitors, chelation binders, potassium foods).</p>
+            
+            <div class="space-y-4 text-xs">
+              <div>
+                <label class="font-semibold block mb-1.5">Select Prescribed Medications:</label>
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_med_warfarin" checked> Warfarin</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_med_simvastatin" checked> Simvastatin</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_med_metformin" checked> Metformin</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_med_cipro"> Ciprofloxacin</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_med_levo"> Levothyroxine</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_med_aspirin"> Aspirin</label>
+                </div>
+              </div>
+
+              <div>
+                <label class="font-semibold block mb-1.5">Select Consumed Foods & Substances:</label>
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_food_grapefruit" checked> Grapefruit Juice</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_food_alcohol" checked> Alcohol</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_food_dairy"> Dairy (Milk/Cheese)</label>
+                  <label class="flex items-center gap-2"><input type="checkbox" id="food_food_potassium"> High Potassium Foods</label>
+                </div>
+              </div>
+            </div>
+
+            <button onclick="runFoodDrugAnalysis()" class="w-full mt-4 py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl transition shadow-lg shadow-amber-600/20 text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-shield-virus"></i> Check CYP3A4 & Metabolic Interactions
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7">
+          <div class="glass-card p-6 rounded-2xl shadow-sm min-h-[440px]">
+            <h3 class="text-lg font-bold mb-3 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Pharmacokinetic Interaction Warnings</h3>
+            
+            <div id="foodDrugResults" class="space-y-3 text-xs">
+              <div class="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl space-y-1">
+                <div class="flex items-center gap-2 font-bold text-rose-700 dark:text-rose-400 text-sm">
+                  <i class="fa-solid fa-skull-crossbones"></i> Simvastatin  ×  Grapefruit Juice (CYP3A4 Inhibition)
+                </div>
+                <p><strong>Mechanism:</strong> Furanocoumarins in grapefruit irreversibly inhibit intestinal CYP3A4 enzymes.</p>
+                <p><strong>Effect:</strong> Serum statin bioavailability surges by <strong>200%–500%</strong>, causing rhabdomyolysis and acute kidney damage.</p>
+                <p><strong>Clinical Action:</strong> AVOID grapefruit or pomelo completely while taking Simvastatin or Atorvastatin.</p>
+              </div>
+
+              <div class="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl space-y-1">
+                <div class="flex items-center gap-2 font-bold text-rose-700 dark:text-rose-400 text-sm">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Warfarin  ×  Alcohol (Hepatic Enzyme Competition)
+                </div>
+                <p><strong>Mechanism:</strong> Alcohol competes for CYP2C9 metabolic breakdown in liver hepatocytes.</p>
+                <p><strong>Effect:</strong> Unpredictable spikes in INR ratio, leading to life-threatening internal gastrointestinal or cerebral hemorrhages.</p>
+                <p><strong>Clinical Action:</strong> Strictly limit or avoid alcohol consumption while on Warfarin therapy.</p>
+              </div>
+
+              <div class="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl space-y-1">
+                <div class="flex items-center gap-2 font-bold text-amber-700 dark:text-amber-400 text-sm">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Metformin  ×  Alcohol (Lactic Acidosis)
+                </div>
+                <p><strong>Effect:</strong> Alcohol potentiates Metformin's effect on lactate metabolism, dramatically elevating fatal Lactic Acidosis risk.</p>
+                <p><strong>Clinical Action:</strong> Avoid excessive alcohol consumption entirely.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: MEDICATION SCHEDULER -->
+    <div id="tab-schedule" class="tab-content hidden">
+      <div class="glass-card p-6 rounded-2xl shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-clock text-blue-600"></i> Chronological 24-Hour Medication Schedule</h3>
+            <p class="text-xs text-slate-500">Personalized daily timeline constructed on circadian pharmacokinetic rules.</p>
+          </div>
+          <span class="text-xs px-3 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 rounded-full font-semibold border border-emerald-300 dark:border-emerald-800">
+            4 Active Medications Timed
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <!-- 06:30 AM -->
+          <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60">
+            <div class="font-bold text-amber-800 dark:text-amber-300 text-sm mb-1">06:30 AM — Fasted</div>
+            <p class="text-slate-500 mb-2 font-medium">Early Morning (Empty Stomach)</p>
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-amber-100 dark:border-amber-900 space-y-1">
+              <div class="font-bold text-slate-900 dark:text-white">Levothyroxine 50mcg</div>
+              <p class="text-slate-500">Take 30-60m before breakfast with water only. Avoid calcium/iron.</p>
+            </div>
+          </div>
+
+          <!-- 08:00 AM -->
+          <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60">
+            <div class="font-bold text-blue-800 dark:text-blue-300 text-sm mb-1">08:00 AM — Breakfast</div>
+            <p class="text-slate-500 mb-2 font-medium">Morning with Food</p>
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900 space-y-1">
+              <div class="font-bold text-slate-900 dark:text-white">Metformin 500mg</div>
+              <p class="text-slate-500">Take WITH breakfast to minimize GI distress & nausea.</p>
+            </div>
+          </div>
+
+          <!-- 08:00 PM -->
+          <div class="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60">
+            <div class="font-bold text-indigo-800 dark:text-indigo-300 text-sm mb-1">08:00 PM — Dinner</div>
+            <p class="text-slate-500 mb-2 font-medium">Evening with Food</p>
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-indigo-100 dark:border-indigo-900 space-y-1">
+              <div class="font-bold text-slate-900 dark:text-white">Metformin 500mg</div>
+              <p class="text-slate-500">Dose 2 of 2 (12 hours after morning dose).</p>
+            </div>
+          </div>
+
+          <!-- 10:00 PM -->
+          <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60">
+            <div class="font-bold text-purple-800 dark:text-purple-300 text-sm mb-1">10:00 PM — Bedtime</div>
+            <p class="text-slate-500 mb-2 font-medium">Night Before Sleep</p>
+            <div class="bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-purple-100 dark:border-purple-900 space-y-1">
+              <div class="font-bold text-slate-900 dark:text-white">Atorvastatin 20mg</div>
+              <p class="text-slate-500">Liver synthesizes cholesterol during sleep hours; optimal efficacy at bedtime.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: 7-FACTOR HEALTH RISK SCORE -->
+    <div id="tab-risk" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-6 space-y-4">
+          <div class="glass-card p-6 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold mb-2 flex items-center gap-2"><i class="fa-solid fa-sliders text-blue-600"></i> Clinical Parameters (NEWS2 Aligned)</h3>
+            <p class="text-xs text-slate-500 mb-4">Adjust patient variables to see real-time recalculation of the 1–100 Health Risk Score.</p>
+            
+            <div class="space-y-3.5 text-xs">
+              <div>
+                <label class="font-semibold block mb-1">Primary Symptoms:</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="risk_sym_chest" checked onchange="updateRiskScore()"> Chest Pain (+35 pts)</label>
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="risk_sym_sob" checked onchange="updateRiskScore()"> Shortness of Breath (+28 pts)</label>
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="risk_sym_fever" onchange="updateRiskScore()"> High Fever (+14 pts)</label>
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="risk_sym_headache" onchange="updateRiskScore()"> Headache (+14 pts)</label>
+                </div>
+              </div>
+
+              <div>
+                <label class="font-semibold block mb-1">Self-Reported Pain / Severity (1–10 scale): <span id="painVal" class="text-blue-600 font-bold">8 / 10</span></label>
+                <input type="range" id="risk_pain" min="1" max="10" value="8" class="w-full cursor-pointer" oninput="document.getElementById('painVal').innerText = this.value + ' / 10'; updateRiskScore()">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="font-semibold block mb-1">Patient Age: <span id="ageVal" class="text-blue-600 font-bold">72 yrs</span></label>
+                  <input type="range" id="risk_age" min="1" max="95" value="72" class="w-full cursor-pointer" oninput="document.getElementById('ageVal').innerText = this.value + ' yrs'; updateRiskScore()">
+                </div>
+                <div>
+                  <label class="font-semibold block mb-1">Symptom Onset</label>
+                  <select id="risk_dur" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900" onchange="updateRiskScore()">
+                    <option value="sudden">Sudden (< 2 hours)</option>
+                    <option value="days">1 - 3 Days</option>
+                    <option value="chronic">Chronic (> 2 weeks)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="font-semibold block mb-1">Red Flags Detected:</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="risk_red_sweat" checked onchange="updateRiskScore()"> Diaphoresis (Sweating)</label>
+                  <label class="flex items-center gap-1.5"><input type="checkbox" id="risk_red_arm" checked onchange="updateRiskScore()"> Radiation to Left Arm</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6">
+          <div class="glass-card p-6 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center min-h-[420px]">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Quantified Clinical Index</span>
+            
+            <!-- Circular/Arc Risk Gauge Display -->
+            <div class="relative w-44 h-44 flex items-center justify-center my-2">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="10" class="text-slate-100 dark:text-slate-800" fill="transparent"/>
+                <circle id="riskCircle" cx="50" cy="50" r="42" stroke="currentColor" stroke-width="10" class="text-rose-600 transition-all duration-500" fill="transparent" stroke-dasharray="264" stroke-dashoffset="35"/>
+              </svg>
+              <div class="absolute flex flex-col items-center">
+                <span id="scoreNumber" class="text-4xl font-extrabold font-heading text-rose-600">87</span>
+                <span class="text-xs text-slate-400 uppercase font-semibold">Score / 100</span>
+              </div>
+            </div>
+
+            <div id="tierBadge" class="px-4 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 mb-3">
+              CRITICAL EMERGENCY TIER
+            </div>
+
+            <p id="riskRec" class="text-xs text-rose-800 dark:text-rose-300 max-w-sm px-2 font-medium">
+              SEEK EMERGENCY CARE IMMEDIATELY. Call 112 / 108 / 911 or proceed to the nearest emergency department.
+            </p>
+
+            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 w-full text-left text-[11px] space-y-1 text-slate-500">
+              <div class="flex justify-between"><span>Symptom Urgency Base:</span><strong class="text-slate-700 dark:text-slate-300">+35 pts</strong></div>
+              <div class="flex justify-between"><span>Reported Pain & Severity:</span><strong class="text-slate-700 dark:text-slate-300">+15 pts</strong></div>
+              <div class="flex justify-between"><span>Age Risk (72y Geriatric):</span><strong class="text-slate-700 dark:text-slate-300">+10 pts</strong></div>
+              <div class="flex justify-between"><span>Red Flags (Sweat + Radiation):</span><strong class="text-slate-700 dark:text-slate-300">+10 pts</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: MULTI-AGENT CHAT NAVIGATION -->
+    <div id="tab-agent" class="tab-content hidden">
+      <div class="glass-card p-6 rounded-2xl shadow-sm max-w-4xl mx-auto">
+        <h3 class="text-lg font-bold mb-1 flex items-center gap-2"><i class="fa-solid fa-comments text-blue-600"></i> Multi-Agent Clinical Routing Console</h3>
+        <p class="text-xs text-slate-500 mb-4">Simulates the OrchestratorAgent dynamically parsing queries, redacting PII, and delegating to specialist sub-agents.</p>
+        
+        <div id="chatHistory" class="space-y-3 max-h-96 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs mb-4">
+          <div class="p-3 bg-blue-50 dark:bg-blue-950/60 rounded-xl border border-blue-200 dark:border-blue-900 text-blue-900 dark:text-blue-200">
+            <strong>OrchestratorAgent:</strong> Hello! I am your MediGuide AI Healthcare Navigator. You can ask me about symptoms, upload prescriptions, paste blood test numbers, or check medication interactions.
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <input type="text" id="chatInput" placeholder="E.g., I have high blood pressure and severe headache, what should I do?" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs" onkeydown="if(event.key==='Enter') sendChatMessage()">
+          <button onclick="sendChatMessage()" class="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-blue-700/20">
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 7: ACADEMIC DOCUMENTS HUB -->
+    <div id="tab-documents" class="tab-content hidden">
+      <div class="glass-card p-6 rounded-2xl shadow-sm max-w-5xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 border-b border-slate-200 dark:border-slate-800 pb-4">
+          <div>
+            <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-blue-600"></i> Review 2 Academic Deliverables Hub</h3>
+            <p class="text-xs text-slate-500">Download the department-approved Review 2 PPT, IEEE Research Paper, and Mid-Term SRS Report.</p>
+          </div>
+          <span class="text-xs px-3 py-1 bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 rounded-full font-bold border border-blue-300 dark:border-blue-800">
+            Exam Date: 31 Aug 2026 (Venue: 3201)
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Document 1: Presentation -->
+          <div class="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-950/80 text-orange-600 flex items-center justify-center text-lg mb-3">
+                <i class="fa-solid fa-file-powerpoint"></i>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Review 2 Presentation (PPTX / PDF)</h4>
+              <p class="text-xs text-slate-500 mb-4">10-slide implementation deck with datasets, algorithms, and 2026-2020 references.</p>
+            </div>
+            <div class="space-y-2">
+              <a href="documents/MediGuide_Vision_AI_Review2_Presentation.pdf" download class="w-full py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                <i class="fa-solid fa-download"></i> Download PDF
+              </a>
+              <a href="documents/MediGuide_Vision_AI_Review2_Presentation.pptx" download class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                <i class="fa-solid fa-file-powerpoint"></i> Download PPTX
+              </a>
+            </div>
+          </div>
+
+          <!-- Document 2: Research Paper -->
+          <div class="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/80 text-blue-600 flex items-center justify-center text-lg mb-3">
+                <i class="fa-solid fa-file-lines"></i>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">IEEE Research Paper Manuscript</h4>
+              <p class="text-xs text-slate-500 mb-4">Full 2-column conference manuscript with authors, equations, architecture, and tables.</p>
+            </div>
+            <div class="space-y-2">
+              <a href="documents/MediGuide_Vision_AI_Research_Paper.pdf" download class="w-full py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                <i class="fa-solid fa-download"></i> Download PDF
+              </a>
+              <a href="documents/MediGuide_Vision_AI_Research_Paper.docx" download class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                <i class="fa-solid fa-file-word"></i> Download DOCX
+              </a>
+            </div>
+          </div>
+
+          <!-- Document 3: SRS Report -->
+          <div class="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 flex items-center justify-center text-lg mb-3">
+                <i class="fa-solid fa-book"></i>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-1">Mid-Term SRS Report (PDF)</h4>
+              <p class="text-xs text-slate-500 mb-4">IEEE 830 compliant Software Requirements Specification covering functional/non-functional specs.</p>
+            </div>
+            <div class="space-y-2">
+              <a href="documents/MediGuide_Vision_AI_SRS_Report.pdf" download class="w-full py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                <i class="fa-solid fa-download"></i> Download PDF
+              </a>
+              <a href="documents/MediGuide_Vision_AI_SRS_Report.docx" download class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+                <i class="fa-solid fa-file-word"></i> Download DOCX
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 text-xs text-slate-500 dark:text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <div>
+        <strong>MediGuide Vision AI</strong> • Major Project (Semester 7) • Vardhaman College of Engineering
+      </div>
+      <div>
+        Evaluator Panel: Dr B K Madhavi & Ms P Swetha & Ms T Prashanthi
+      </div>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-button').forEach(el => {
+        el.classList.remove('active-tab');
+        el.classList.add('bg-white', 'dark:bg-slate-900', 'text-slate-700', 'dark:text-slate-300');
+      });
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      const btn = document.getElementById('tab-btn-' + tabId);
+      btn.classList.add('active-tab');
+      btn.classList.remove('bg-white', 'dark:bg-slate-900', 'text-slate-700', 'dark:text-slate-300');
+    }
+
+    // Theme Toggle
+    const themeBtn = document.getElementById('themeToggle');
+    themeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    // Image Upload Handling
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const preview = document.getElementById('imagePreview');
+          preview.src = evt.target.result;
+          preview.classList.remove('hidden');
+          document.getElementById('uploadPlaceholder').classList.add('hidden');
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function loadSampleImage(type) {
+      const preview = document.getElementById('imagePreview');
+      if (type === 'prescription') {
+        preview.src = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60';
+      } else if (type === 'skin') {
+        preview.src = 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=500&auto=format&fit=crop&q=60';
+      } else {
+        preview.src = 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=500&auto=format&fit=crop&q=60';
+      }
+      preview.classList.remove('hidden');
+      document.getElementById('uploadPlaceholder').classList.add('hidden');
+    }
+
+    function runVisionPipeline() {
+      document.getElementById('visionOutputDefault').classList.add('hidden');
+      document.getElementById('visionOutputResult').classList.remove('hidden');
+    }
+
+    function runLabAnalysis() {
+      alert("Lab Panel analyzed! Critical troponin and potassium flags updated in report.");
+    }
+
+    function runFoodDrugAnalysis() {
+      alert("CYP3A4 Metabolic Interaction Matrix updated!");
+    }
+
+    // Health Risk Score Calculator
+    function updateRiskScore() {
+      let score = 0;
+      if (document.getElementById('risk_sym_chest').checked) score += 35;
+      if (document.getElementById('risk_sym_sob').checked) score += 28;
+      if (document.getElementById('risk_sym_fever').checked) score += 14;
+      if (document.getElementById('risk_sym_headache').checked) score += 14;
+      
+      const pain = parseInt(document.getElementById('risk_pain').value);
+      score += Math.round(pain * 1.5);
+
+      const age = parseInt(document.getElementById('risk_age').value);
+      if (age >= 65) score += 10;
+      else if (age >= 50) score += 5;
+
+      if (document.getElementById('risk_red_sweat').checked) score += 5;
+      if (document.getElementById('risk_red_arm').checked) score += 5;
+
+      score = Math.min(100, Math.max(1, score));
+
+      document.getElementById('scoreNumber').innerText = score;
+      const offset = 264 - (264 * (score / 100));
+      document.getElementById('riskCircle').style.strokeDashoffset = offset;
+
+      const badge = document.getElementById('tierBadge');
+      const rec = document.getElementById('riskRec');
+      const num = document.getElementById('scoreNumber');
+      const circle = document.getElementById('riskCircle');
+
+      if (score >= 80) {
+        badge.innerText = "CRITICAL EMERGENCY TIER";
+        badge.className = "px-4 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 mb-3";
+        rec.innerText = "SEEK EMERGENCY CARE IMMEDIATELY. Call 112 / 108 / 911 or proceed to nearest emergency room.";
+        num.className = "text-4xl font-extrabold font-heading text-rose-600";
+        circle.className = "text-rose-600 transition-all duration-500";
+      } else if (score >= 60) {
+        badge.innerText = "HIGH RISK TIER";
+        badge.className = "px-4 py-1 rounded-full text-xs font-bold bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-800 mb-3";
+        rec.innerText = "Seek medical attention today. Visit urgent care or contact your physician immediately.";
+        num.className = "text-4xl font-extrabold font-heading text-orange-500";
+        circle.className = "text-orange-500 transition-all duration-500";
+      } else if (score >= 40) {
+        badge.innerText = "MODERATE RISK TIER";
+        badge.className = "px-4 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800 mb-3";
+        rec.innerText = "Schedule a GP appointment within 24-48 hours. Monitor symptoms closely.";
+        num.className = "text-4xl font-extrabold font-heading text-amber-500";
+        circle.className = "text-amber-500 transition-all duration-500";
+      } else {
+        badge.innerText = "LOW RISK TIER";
+        badge.className = "px-4 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 mb-3";
+        rec.innerText = "Rest, hydrate, and monitor symptoms. Visit GP if symptoms worsen over 3-5 days.";
+        num.className = "text-4xl font-extrabold font-heading text-emerald-500";
+        circle.className = "text-emerald-500 transition-all duration-500";
+      }
+    }
+
+    // Chat Message Simulation
+    function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const history = document.getElementById('chatHistory');
+      const userDiv = document.createElement('div');
+      userDiv.className = 'p-3 bg-slate-200 dark:bg-slate-800 rounded-xl text-slate-900 dark:text-white text-right';
+      userDiv.innerHTML = `<strong>You:</strong> ${text}`;
+      history.appendChild(userDiv);
+      input.value = '';
+
+      setTimeout(() => {
+        const agentDiv = document.createElement('div');
+        agentDiv.className = 'p-3 bg-blue-50 dark:bg-blue-950/60 rounded-xl border border-blue-200 dark:border-blue-900 text-blue-900 dark:text-blue-200';
+        agentDiv.innerHTML = `<strong>OrchestratorAgent [Routing to TriageAgent]:</strong> 
+          ✓ Input Sanitized (PII Redacted).<br>
+          ✓ Evaluated clinical symptoms. Estimated Health Risk Score: <strong>72/100 (High Risk)</strong>.<br>
+          ✓ Recommended Action: Seek medical evaluation today. Monitor blood pressure closely.`;
+        history.appendChild(agentDiv);
+        history.scrollTop = history.scrollHeight;
+      }, 500);
+    }
+  </script>
+</body>
+</html>

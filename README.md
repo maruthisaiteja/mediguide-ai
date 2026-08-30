@@ -9,11 +9,14 @@
 > **Coordinator:** Dr. Vinayak G Biradar | **Exam Date:** 31 August 2026 (Venue: 3201)  
 > **Team Members:** Ratna Ganesh Reddy (C06-A), P. Maruthi Sai Teja (C06-B), P. Pavan Goud (C06-C)
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmaruthisaiteja%2Fmediguide-ai)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-Multiagent-green.svg)](https://github.com/google/adk-python)
 [![Tests](https://img.shields.io/badge/Tests-31%2F31%20Passed%20(100%25)-brightgreen.svg)](tests/)
+[![Live Web Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20Ready-blueviolet.svg)](public/index.html)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](Dockerfile)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 
 ---
 

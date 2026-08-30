@@ -1,0 +1,19 @@
+{
+  "name": "mediguide-vision-ai",
+  "version": "2.0.0",
+  "description": "Multiagent Medical Image Analysis and Healthcare Navigation",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "npx serve public",
+    "build": "echo 'Static build ready in public/'"
+  },
+  "keywords": [
+    "healthcare-ai",
+    "image-processing",
+    "multi-agent",
+    "medical-vision",
+    "adk"
+  ],
+  "author": "Ratna Ganesh Reddy, P. Maruthi Sai Teja, P. Pavan Goud",
+  "license": "MIT"
+}
